@@ -1,6 +1,6 @@
 // GENERAL INIT
 var socket = io.connect('http://localhost:8080');
-var modType = 'mag';
+var modType = 'amp';
 var waveType = 'sine';
 
 $(document).ready(function() {
@@ -56,11 +56,11 @@ function startSound() {
     var outBuffer;
 
     switch (modType) {
-    case 'mag':
-      outBuffer = modMagnitude();
+    case 'amp':
+      outBuffer = modAmp();
       break;
     case 'freq':
-      outBuffer = modFrequency();
+      outBuffer = modFreq();
       break;
     default:
       console.log('Unknown modulation type');
@@ -81,7 +81,7 @@ function stopSound() {
   clearInterval(timer);
 }
 
-function modMagnitude() {
+function modAmp() {
   // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
   //var waveBuffer = makeWave(waveType, 440/modDataBuffer[0], frameCount);
