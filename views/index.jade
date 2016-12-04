@@ -1,0 +1,41 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    title muzak
+    link(rel='stylesheet', href='/build/main.css')
+    link(rel='apple-touch-icon', href='/assets/favicon.png')
+
+    script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js')
+
+    script(src='/socket.io/socket.io.js')
+    script(src='/lib/jquery.peity.js')
+    script(src='/js/signalGen.js')
+    script(src='/js/main.js')
+
+  body
+    main
+      div#controls
+        a(onclick='setMode("sine")') sine
+        a(onclick='setMode("square")') square
+        //a(onclick='setMode("tri")') tri
+        a(onclick='setMode("saw")') saw
+        a(onclick='startSound()') START
+        //a(onclick='stopSound()') STOP
+
+      div#timeDomain.graph
+        p(id='waveform') time domain
+        canvas#timeDomainCanvas() Your browser does not support the canvas element.
+
+
+      div#freqDomain.graph
+        p freq domain
+
+      //a(onclick='setTest()') lksdjfkldjkf
+
+      //div
+        h3#ASDF old data
+        //span(class='line analogDataChart', id='waveform') 3, 4, 5
+        div(id='waveform') 3, 4, 5
+

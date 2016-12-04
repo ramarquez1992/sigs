@@ -1,0 +1,58 @@
+$fontStack: Monaco, 'Lucida Console', monospace
+
+$dark-background: #333
+$light-background: #555
+$light-border: #aaa
+
+h4 
+  color: #ff0000
+
+*
+  margin: 0
+  padding: 0
+  border: 0
+
+body
+  background-color: $dark-background
+  color: #0ff
+  font-family: $fontStack
+  font-size: medium
+
+.clear
+  clear: both
+
+main
+  height: 100%
+
+#controls
+  background-color: $light-background
+  color: #000
+  height: 2em
+  a
+    float: left
+    margin-right: 2em
+
+$graph-size: 20em
+.graph
+  position: relative
+  canvas
+    width: $graph-size
+    height: $graph-size
+  border: 1px solid $light-border
+  padding: 1em
+  width: $graph-size
+  min-height: $graph-size
+  background-color: $light-background
+
+#timeDomain
+  position: absolute
+  top: 10em
+  left: 10%
+  color: #000
+
+#freqDomain
+  position: absolute
+  top: 10em
+  right: 10%
+  color: #000
+
