@@ -28,8 +28,9 @@ else if (window.audioContext) audioCtx = new window.audioContext();
 else alert('Browser audio requirements not met');
 
 var channels = 1;
-var frameCount = audioCtx.sampleRate;
-var arrayBuffer = audioCtx.createBuffer(channels, frameCount, audioCtx.sampleRate);
+var sampleRate = audioCtx.sampleRate;
+var frameCount = sampleRate;
+var arrayBuffer = audioCtx.createBuffer(channels, frameCount, sampleRate);
 
 // IN MODULATION DATA
 var modDataBuffer = [];
@@ -42,6 +43,7 @@ function newDataRcvd(inBuffer) {
 var source;
 var timer;
 var timerInterval = 50;
+var drawPoints = 200;
 
 function startSound() {
   modDataBuffer.length = 0;  // clear old data
@@ -68,7 +70,8 @@ function startSound() {
 
     // Trim number of points that will be drawn
     var drawBuffer = [];
-    for (var i = 0; i < outBuffer.length; i += 500) {
+    var drawInterval = parseInt(outBuffer.length/drawPoints);
+    for (var i = 0; i < outBuffer.length; i += drawInterval) {
       drawBuffer.push(outBuffer[i]);
     }
     draw(drawBuffer, 'timeDomainCanvas');
@@ -84,20 +87,35 @@ function stopSound() {
 function modAmp() {
   // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
-  //var waveBuffer = makeWave(waveType, 440/modDataBuffer[0], frameCount);
   var waveBuffer = makeWave(waveType, 440, frameCount);
 
   var chunkSize = frameCount/modDataBuffer.length;
   
   var nextDatum = modDataBuffer[0];
   for (var i in waveBuffer) {
-    //nowBuffering[i] = waveBuffer[i];  // pure sine wave
-    nowBuffering[i] = waveBuffer[i] * nextDatum;  // modulated amplitude
+    nowBuffering[i] = waveBuffer[i] * nextDatum;  // modulate amplitude
     
     if (i%chunkSize < 1 && modDataBuffer.length > 1) {
       nextDatum = modDataBuffer.shift();
     }
   }
+
+  return nowBuffering;
+}
+
+function modFreq() {
+  // values between -1.0 and 1.0
+  var nowBuffering = arrayBuffer.getChannelData(0);
+
+  var chunkSize = frameCount/modDataBuffer.length;
+  for (var i in modDataBuffer) {
+    var waveBuffer = makeWave(waveType, 440/modDataBuffer[i], frameCount);
+    for (var j = 0; j < chunkSize; j++) {
+      var nbi = parseInt((chunkSize*i) + j);
+      nowBuffering[nbi] = waveBuffer[j];
+    }
+  }
+  modDataBuffer.length = 0;
 
   return nowBuffering;
 }
