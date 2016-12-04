@@ -16,12 +16,16 @@ html
   body
     main
       div#controls
-        a(onclick='setMode("sine")') sine
-        a(onclick='setMode("square")') square
-        //a(onclick='setMode("tri")') tri
-        a(onclick='setMode("saw")') saw
+        a(onclick='setWaveType("sine")') sine
+        a(onclick='setWaveType("square")') square
+        //a(onclick='setWaveType("tri")') tri
+        a(onclick='setWaveType("saw")') saw
+
+        a(onclick='setModType("mag")') mag
+        a(onclick='setModType("freq")') freq
+
         a(onclick='startSound()') START
-        //a(onclick='stopSound()') STOP
+        a(onclick='stopSound()') STOP
 
       div#timeDomain.graph
         canvas#timeDomainCanvas Your browser does not support the canvas element.

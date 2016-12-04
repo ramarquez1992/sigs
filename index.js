@@ -15,10 +15,10 @@ webServer.start(serverPort);
 
 // HARDWARE
 var uno = require('./js/hwInterface.js');
-var bufferSize = 10;
+var maxBufferSize = 10;
 
 function sendData() {
-  socket.emit('newDataRcvd', uno.getData(bufferSize));
+  socket.emit('newDataRcvd', uno.getData(maxBufferSize));
 }
 
 
@@ -29,7 +29,7 @@ webServer.io.sockets.on('connection', function (s) {
 
   setInterval(function() {
     sendData();
-  }, 250);
+  }, 50);
 
   socket.on('clrBuffer', uno.clrBuffer);
 });
