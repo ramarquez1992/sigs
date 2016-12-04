@@ -89,7 +89,7 @@ function play() {
   // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
   var waveBuffer = makeWave(mode, 440/dataBuffer[0], frameCount);
-  console.log(waveBuffer);
+  //console.log(waveBuffer);
 
   //console.log(waveBuffer);
   //console.log(dataBuffer);

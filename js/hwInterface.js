@@ -1,5 +1,5 @@
-// Requires johnny-five
 var five = require( "johnny-five" );
+
 var board = new five.Board();
 var rangeMax = 50.0;
 var rangeMin = 4.0;
@@ -14,13 +14,13 @@ function rescaleData( value ) {
 board.on( "ready", function () {
 	var proximity = new five.Proximity( {
 		controller: "HCSR04",
-		pin: "A0",
+		//pin: "A0",
+		pin: 7,
 		freq: pollRate
 	} );
 
 	proximity.on( "data", function () {
-		console.log( "Proximity: " );
-		console.log( "  cm  : ", rescaleData( this.cm ) );
+		console.log( "Proximity  : ", rescaleData( this.cm ) );
 	} );
 
 	proximity.on( "data", function () {
@@ -34,7 +34,7 @@ function giveData( size ) {
 	return data;
 }
 
-var app = {
+var lib = {
 	getData: function ( size ) {
 		return giveData( size );
 	},
@@ -43,4 +43,5 @@ var app = {
 	}
 };
 
-module.exports = app;
+module.exports = lib;
+

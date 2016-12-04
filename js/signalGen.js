@@ -63,3 +63,4 @@ function makeWave( type, freq, resolution ) {
 	}
 	return returnData;
 }
+
