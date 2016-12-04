@@ -7,18 +7,16 @@ var path = require('path'),
   webServer = require('./js/webServer.js'),
   socket = null;
 
-var serverPort = 8080;
 
-// SERVER INITIALIZATION
+// SERVER
+var serverPort = 8080;
 webServer.start(serverPort);
 
-function hertzToMs(hz) {
- return 1 / (hz * 1000);
-}
 
+// HARDWARE
+var uno = require('./js/hwInterface.js');
 var bufferSize = 10;
 
-var uno = require('./js/hwInterface.js');
 function sendData() {
   socket.emit('newDataRcvd', uno.getData(bufferSize));
 }
@@ -27,14 +25,18 @@ function sendData() {
 // SOCKET CONTROLLER
 webServer.io.sockets.on('connection', function (s) {
   socket = s; // Add socket to global scope
+  //uno.clrBuffer();
 
   setInterval(function() {
-    socket.emit('toggleLabel', null);
-    //uno.clrBuffer();
     sendData();
   }, 250);
 
   socket.on('clrBuffer', uno.clrBuffer);
-
 });
+
+
+// MISC FUNCS
+function hertzToMs(hz) {
+ return 1 / (hz * 1000);
+}
 
