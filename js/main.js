@@ -14,10 +14,12 @@ function initSocket() {
 
 function setModType(inModType) {
   modType = inModType;
+  waveBuffer.length = 0;
 }
 
 function setWaveType(inWaveType) {
   waveType = inWaveType;
+  waveBuffer.length = 0;
 }
 
 // AUDIO INIT
@@ -29,8 +31,8 @@ else alert('Browser audio requirements not met');
 
 var channels = 1;
 var sampleRate = audioCtx.sampleRate;
-var frameCount = sampleRate;
-var arrayBuffer = audioCtx.createBuffer(channels, frameCount, sampleRate);
+var frameSize = 512;
+var arrayBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
 
 // IN MODULATION DATA
 var modDataBuffer = [];
@@ -84,16 +86,22 @@ function stopSound() {
   clearInterval(timer);
 }
 
+var waveBuffer = [];
 function modAmp() {
   // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
-  var waveBuffer = makeWave(waveType, 440, frameCount);
+  //waveBuffer = makeWave(waveType, 440, sampleRate);
+  if (waveBuffer.length < frameSize) {
+    waveBuffer = waveBuffer.concat( makeWave(waveType, 440, sampleRate) );
+  }
+  var frameBuffer = waveBuffer.slice(0, frameSize);
+  waveBuffer.splice(0, frameSize);
 
-  var chunkSize = frameCount/modDataBuffer.length;
+  var chunkSize = frameSize/modDataBuffer.length;
   
   var nextDatum = modDataBuffer[0];
-  for (var i in waveBuffer) {
-    nowBuffering[i] = waveBuffer[i] * nextDatum;  // modulate amplitude
+  for (var i in frameBuffer) {
+    nowBuffering[i] = frameBuffer[i] * nextDatum;  // modulate amplitude
     
     if (i%chunkSize < 1 && modDataBuffer.length > 1) {
       nextDatum = modDataBuffer.shift();
@@ -107,9 +115,9 @@ function modFreq() {
   // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
 
-  var chunkSize = frameCount/modDataBuffer.length;
+  var chunkSize = frameSize/modDataBuffer.length;
   for (var i in modDataBuffer) {
-    var waveBuffer = makeWave(waveType, 440/modDataBuffer[i], frameCount);
+    var waveBuffer = makeWave(waveType, 440/modDataBuffer[i], sampleRate, frameSize);
     for (var j = 0; j < chunkSize; j++) {
       var nbi = parseInt((chunkSize*i) + j);
       nowBuffering[nbi] = waveBuffer[j];
