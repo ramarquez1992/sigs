@@ -1,4 +1,4 @@
-var maxFreq = 4500;  // TODO: set systematically
+var maxFreq = 4500; // TODO: set systematically
 
 function integrate( f, start, end, step ) {
 	var total = 0;
@@ -25,15 +25,26 @@ function squareData( freq, numPoints ) {
 	return dataArray;
 }
 
-function sawData( freq, numPoints ) {
+function triData( freq, numPoints ) {
 	var dataArray = [];
 	for ( var i = 0; i < numPoints; i++ ) {
 		dataArray.push(
-			2 * ( ( i * freq / numPoints ) - Math.floor( i * freq / numPoints ) ) - 1
+			( 2 / Math.PI ) * Math.asin( Math.sin( 2 * Math.PI * freq * i / numPoints ) )
 		);
 	}
 	return dataArray;
 }
+
+function sawData( freq, numPoints ) {
+	var dataArray = [];
+	for ( var i = 0; i < numPoints; i++ ) {
+		dataArray.push(
+			2 * ( freq * ( i / numPoints ) % 1 ) - 1
+		);
+	}
+	return dataArray;
+}
+
 
 function addWaves() {
 	var finalWave = [];
@@ -49,7 +60,7 @@ function addWaves() {
 
 
 function makeWave( type, freq, resolution ) {
-  freq = Math.min(freq, maxFreq);  // Limit in freq to avoid infinity
+	freq = Math.min( freq, maxFreq ); // Limit in freq to avoid infinity
 
 	var returnData = [];
 	switch ( type ) {
@@ -62,6 +73,9 @@ function makeWave( type, freq, resolution ) {
 	case 'saw':
 		returnData = sawData( freq, resolution );
 		break;
+	case 'tri':
+		returnData = triData( freq, resolution );
+		break;
 	default:
 		returnData = null;
 	}
@@ -70,24 +84,23 @@ function makeWave( type, freq, resolution ) {
 }
 
 function makeCleanWave( type, freq, resolution ) {
-  var dirty = makeWave(type, freq, resolution);
-  return cleanWave(dirty);
+	var dirty = makeWave( type, freq, resolution );
+	return cleanWave( dirty );
 }
 
 // Return a single wave that starts and ends at zero
 // TODO: cleaning waves in this fashion makes saw act weird
-function cleanWave(returnData) {
-  var count = 0;
+function cleanWave( returnData ) {
+	var count = 0;
 
-  while (returnData[count] >= 0) {
-    count++;
-  }
+	while ( returnData[ count ] >= 0 ) {
+		count++;
+	}
 
-  while(returnData[count] <= 0) {
-    count++;
-  }
+	while ( returnData[ count ] <= 0 ) {
+		count++;
+	}
 
-  var cleanData = returnData.slice(0, count);
-  return cleanData;
+	var cleanData = returnData.slice( 0, count );
+	return cleanData;
 }
-
