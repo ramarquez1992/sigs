@@ -4,9 +4,6 @@ $dark-background: #333
 $light-background: #555
 $light-border: #aaa
 
-h4 
-  color: #ff0000
-
 *
   margin: 0
   padding: 0
@@ -21,38 +18,49 @@ body
 .clear
   clear: both
 
-main
-  height: 100%
-
-#controls
+.button
+  display: block
+  min-width: 5em
+  padding: .5em
   background-color: $light-background
   color: #000
-  height: 2em
-  a
-    float: left
-    margin-right: 2em
+  border-radius: .3em
+  text-align: center
 
-$graph-size: 20em
+#startButton
+  background-color: #080
+  color: #fff
+  text-transform: uppercase
+
+#stopButton
+  background-color: #900
+  color: #fff
+  text-transform: uppercase
+
+#controls
+  position: absolute
+  left: 5%
+  top: 72%
+  height: 2em
+  color: #000
+  span
+    float: left
+    margin-right: 1em
+    margin-bottom: 1em
+
 .graph
-  position: relative
-  canvas
-    width: $graph-size
-    height: $graph-size
+  padding: 1em 2.5%
   border: 1px solid $light-border
-  padding: 1em
-  width: $graph-size
-  min-height: $graph-size
   background-color: $light-background
+  canvas
+    width: 100%
+    height: 100%
 
 #timeDomain
   position: absolute
-  top: 10em
-  left: 10%
-  color: #000
-
-#freqDomain
-  position: absolute
-  top: 10em
-  right: 10%
+  top: 5%
+  left: 5%
+  width: 85%
+  height: 60%
   color: #000
 

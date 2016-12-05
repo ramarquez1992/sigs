@@ -1,17 +1,32 @@
 // GENERAL INIT
 var socket = io.connect('http://localhost:8080');
-var modType = 'freq';
+var modType = 'amp';
 var waveType = 'sine';
 var defaultTone = 440;  // Hz (concert A)
 var baseTone = defaultTone;
 
 $(document).ready(function() {
+  initGUI();
+
   initSocket();
   socket.emit('clrBuffer', null);
 });
 
-function initSocket() {
-  socket.on('newDataRcvd', newDataRcvd);
+function initGUI() {
+  $('#stopButton').hide();
+
+  $('#waveTypeSelect').on('change', function() {
+    setWaveType(this.value);
+  });
+
+  $('#modTypeSelect').on('change', function() {
+    setModType(this.value);
+  });
+}
+
+function setWaveType(inWaveType) {
+  waveType = inWaveType;
+  waveBuffer = [];
 }
 
 function setModType(inModType) {
@@ -19,9 +34,28 @@ function setModType(inModType) {
   waveBuffer = [];
 }
 
-function setWaveType(inWaveType) {
-  waveType = inWaveType;
-  waveBuffer = [];
+function startButtonPressed() {
+  startSound();
+  $('#startButton').hide();
+  $('#stopButton').show();
+}
+
+function stopButtonPressed() {
+  stopSound();
+  $('#startButton').show();
+  $('#stopButton').hide();
+}
+
+function initSocket() {
+  socket.on('newDataRcvd', newDataRcvd);
+}
+
+// IN MODULATION DATA
+var modDataBuffer = [];
+function newDataRcvd(inBuffer) {
+  for (var i in inBuffer) {
+    modDataBuffer.push(inBuffer[i]);
+  }
 }
 
 // AUDIO INIT
@@ -35,14 +69,6 @@ var channels = 1;
 var sampleRate = audioCtx.sampleRate;
 var frameSize = 512;
 var arrayBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
-
-// IN MODULATION DATA
-var modDataBuffer = [];
-function newDataRcvd(inBuffer) {
-  for (var i in inBuffer) {
-    modDataBuffer.push(inBuffer[i]);
-  }
-}
 
 var source;
 var timer;
@@ -62,24 +88,23 @@ function startSound() {
     var outBuffer;
 
     switch (modType) {
-    case 'amp':
-      outBuffer = modAmp();
-      break;
-    case 'freq':
-      outBuffer = modFreq();
-      break;
-    default:
-      console.log('Unknown modulation type');
+      case 'amp':
+        outBuffer = modAmp();
+        break;
+      case 'freq':
+        outBuffer = modFreq();
+        break;
+      default:
+        console.log('Unknown modulation type');
     }
 
     // Trim number of points that will be drawn
     var drawBuffer = [];
     var drawInterval = parseInt(outBuffer.length/drawPoints);
     for (var i = 0; i < outBuffer.length; i += drawInterval) {
-      //if (waveType == 'saw') outBuffer[i] += 0.5;
       drawBuffer.push(outBuffer[i]);
     }
-    draw(drawBuffer, 'timeDomainCanvas');
+    draw(drawBuffer, 0, 'timeDomainCanvas');
 
   }, timerInterval);
 }
@@ -91,7 +116,6 @@ function stopSound() {
 
 var waveBuffer = [];
 function modAmp() {
-  // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
 
   while (waveBuffer.length < frameSize) {
@@ -101,11 +125,11 @@ function modAmp() {
   waveBuffer.splice(0, frameSize);
 
   var chunkSize = frameSize/modDataBuffer.length;
-  
+
   var nextDatum = modDataBuffer[0];
   for (var i in frameBuffer) {
     nowBuffering[i] = frameBuffer[i] * nextDatum;  // modulate amplitude
-    
+
     if (i%chunkSize < 1 && modDataBuffer.length > 1) {
       nextDatum = modDataBuffer.shift();
     }
@@ -115,7 +139,6 @@ function modAmp() {
 }
 
 function modFreq() {
-  // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
 
   var numChunks = modDataBuffer.length;
@@ -124,7 +147,7 @@ function modFreq() {
       waveBuffer.push( makeCleanWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
     }
   } else { numChunks = 1; }
-  
+
   var chunkSize = frameSize/numChunks;
   var frameBuffer = [];
 
@@ -165,23 +188,30 @@ function beep(duration, frequency, volume, type, callback) {
 }
 
 // VISUALIZATION
-function draw(plotData, elementName) {
+function draw(plotData, deltaY, elementName) {
+  var newData = [];
+
+  for (var i = 0; i < plotData.length - 1; i++){
+    if (Math.abs(plotData[i+1] - plotData[i]) >= deltaY){
+      newData.push(plotData[i+1]);
+    }
+  }
+
   var canvas = document.getElementById(elementName);
   var ctx = canvas.getContext('2d');
   var height = canvas.height;
   var width = canvas.width;
 
-  ctx.clearRect(0, 0, width, height); // clear canvas
-
+  ctx.clearRect(0,0,width,height);  // clear canvas
   ctx.beginPath();
-  ctx.moveTo(0, height/2 - plotData[0]*height/2);
+  ctx.moveTo(0,height/2 - newData[0]*height/2);
 
   var x = 0;
   var y = 0;
-  for(var i in plotData) {
-    y = plotData[i];
+  for(var j in newData) {
+    y = newData[j];
     ctx.lineTo(x, height/2 - y*height/2);
-    x += width/(plotData.length-1.0);
+    x += width/(newData.length-1.0);
   }
 
   ctx.stroke();

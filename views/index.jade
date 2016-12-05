@@ -14,22 +14,25 @@ html
     script(src='/js/main.js')
 
   body
-    main
-      div#controls
-        a(onclick='setWaveType("sine")') sine
-        a(onclick='setWaveType("square")') square
-        //a(onclick='setWaveType("tri")') tri
-        a(onclick='setWaveType("saw")') saw
+    div#controls
+      span#startButton.button(onclick='startButtonPressed()') Start
+      span#stopButton.button(onclick='stopButtonPressed()') Stop
 
-        a(onclick='setModType("amp")') amp
-        a(onclick='setModType("freq")') freq
+      span.button Wave type: 
+        select#waveTypeSelect
+          option(value='sine') Sine
+          option(value='square') Square
+          option(value='saw') Sawtooth
+          //option(value='tri') Triangle
 
-        a(onclick='startSound()') START
-        a(onclick='stopSound()') STOP
+      span.button Modulation type: 
+        select#modTypeSelect
+          option(value='amp') Amplitude
+          option(value='freq') Frequency
 
-      div#timeDomain.graph
-        canvas#timeDomainCanvas Your browser does not support the canvas element.
+    div#timeDomain.graph
+      canvas#timeDomainCanvas Your browser does not support the canvas element.
 
-      //div#freqDomain.graph
-        canvas#freqDomainCanvas Your browser does not support the canvas element.
+    //div#freqDomain.graph
+      canvas#freqDomainCanvas Your browser does not support the canvas element.
 

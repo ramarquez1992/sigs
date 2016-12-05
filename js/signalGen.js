@@ -74,7 +74,8 @@ function makeCleanWave( type, freq, resolution ) {
   return cleanWave(dirty);
 }
 
-// Wave starts and ends at zero
+// Return a single wave that starts and ends at zero
+// TODO: cleaning waves in this fashion makes saw act weird
 function cleanWave(returnData) {
   var count = 0;
 

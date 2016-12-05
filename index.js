@@ -25,7 +25,7 @@ function sendData() {
 // SOCKET CONTROLLER
 webServer.io.sockets.on('connection', function (s) {
   socket = s; // Add socket to global scope
-  //uno.clrBuffer();
+  uno.clrBuffer();
 
   setInterval(function() {
     sendData();
