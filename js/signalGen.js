@@ -1,4 +1,4 @@
-var maxFreq = 4500;
+var maxFreq = 4500;  // TODO: set systematically
 
 function integrate( f, start, end, step ) {
 	var total = 0;
@@ -49,7 +49,7 @@ function addWaves() {
 
 
 function makeWave( type, freq, resolution ) {
-  freq = Math.min(freq, maxFreq);
+  freq = Math.min(freq, maxFreq);  // Limit in freq to avoid infinity
 
 	var returnData = [];
 	switch ( type ) {

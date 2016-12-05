@@ -72,7 +72,7 @@ var arrayBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
 
 var source;
 var timer;
-var timerInterval = 50;
+var timerInterval = 25;  // OR (1 / (sampleRate/frameSize))
 var drawPoints = 200;
 
 function startSound() {

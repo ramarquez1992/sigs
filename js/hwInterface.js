@@ -1,6 +1,18 @@
 var five = require( "johnny-five" );
+var argv = require('minimist')(process.argv.slice(2));
 
-var board = new five.Board();
+// PARSE ARGUMENTS
+var boardPath = null;
+if (argv.hasOwnProperty('b')) {
+  boardPath = argv.b;
+}
+
+var board = new five.Board({
+  port: boardPath,  // /dev/tty.WSU_CSC-DevB
+  repl: false,
+  debug: false
+});
+
 var rangeMax = 50.0;
 var rangeMin = 4.0;
 var pollRate = 25;
@@ -14,7 +26,6 @@ function rescaleData( value ) {
 board.on( "ready", function () {
 	var proximity = new five.Proximity( {
 		controller: "HCSR04",
-		//pin: "A0",
 		pin: 7,
 		freq: pollRate
 	} );
