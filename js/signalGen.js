@@ -85,22 +85,27 @@ function makeWave( type, freq, resolution ) {
 
 function makeCleanWave( type, freq, resolution ) {
 	var dirty = makeWave( type, freq, resolution );
-	return cleanWave( dirty );
+	return cleanWave( dirty, type );
 }
 
 // Return a single wave that starts and ends at zero
-// TODO: cleaning waves in this fashion makes saw act weird
-function cleanWave( returnData ) {
-	var count = 0;
+function cleanWave( inWave, type ) {
+  var count = 0;
 
-	while ( returnData[ count ] >= 0 ) {
-		count++;
-	}
+  if ( type === 'saw' ) {
+    while ( inWave[ count] <= 0.98 ) {
+      count++;
+    }
+  } else {
+    while ( inWave[ count ] >= 0 ) {
+      count++;
+    }
 
-	while ( returnData[ count ] <= 0 ) {
-		count++;
-	}
+    while ( inWave[ count ] <= 0 ) {
+      count++;
+    }
+  }
 
-	var cleanData = returnData.slice( 0, count );
-	return cleanData;
+  var cleanData = inWave.slice( 0, count );
+  return cleanData;
 }
