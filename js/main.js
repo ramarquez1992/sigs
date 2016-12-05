@@ -1,7 +1,9 @@
 // GENERAL INIT
 var socket = io.connect('http://localhost:8080');
-var modType = 'amp';
+var modType = 'freq';
 var waveType = 'sine';
+var defaultTone = 440;  // Hz (concert A)
+var baseTone = defaultTone;
 
 $(document).ready(function() {
   initSocket();
@@ -14,12 +16,12 @@ function initSocket() {
 
 function setModType(inModType) {
   modType = inModType;
-  waveBuffer.length = 0;
+  waveBuffer = [];
 }
 
 function setWaveType(inWaveType) {
   waveType = inWaveType;
-  waveBuffer.length = 0;
+  waveBuffer = [];
 }
 
 // AUDIO INIT
@@ -74,6 +76,7 @@ function startSound() {
     var drawBuffer = [];
     var drawInterval = parseInt(outBuffer.length/drawPoints);
     for (var i = 0; i < outBuffer.length; i += drawInterval) {
+      //if (waveType == 'saw') outBuffer[i] += 0.5;
       drawBuffer.push(outBuffer[i]);
     }
     draw(drawBuffer, 'timeDomainCanvas');
@@ -90,9 +93,9 @@ var waveBuffer = [];
 function modAmp() {
   // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
-  //waveBuffer = makeWave(waveType, 440, sampleRate);
-  if (waveBuffer.length < frameSize) {
-    waveBuffer = waveBuffer.concat( makeWave(waveType, 440, sampleRate) );
+
+  while (waveBuffer.length < frameSize) {
+    waveBuffer = waveBuffer.concat( makeCleanWave(waveType, baseTone, sampleRate) );
   }
   var frameBuffer = waveBuffer.slice(0, frameSize);
   waveBuffer.splice(0, frameSize);
@@ -115,15 +118,31 @@ function modFreq() {
   // values between -1.0 and 1.0
   var nowBuffering = arrayBuffer.getChannelData(0);
 
-  var chunkSize = frameSize/modDataBuffer.length;
-  for (var i in modDataBuffer) {
-    var waveBuffer = makeWave(waveType, 440/modDataBuffer[i], sampleRate, frameSize);
-    for (var j = 0; j < chunkSize; j++) {
-      var nbi = parseInt((chunkSize*i) + j);
-      nowBuffering[nbi] = waveBuffer[j];
+  var numChunks = modDataBuffer.length;
+  if (numChunks !== 0) {
+    for (var i = 0; i < numChunks; i++) {
+      waveBuffer.push( makeCleanWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
     }
+  } else { numChunks = 1; }
+  
+  var chunkSize = frameSize/numChunks;
+  var frameBuffer = [];
+
+  for (var k = 0; k < numChunks; k++) {
+    var curChunkSize = waveBuffer[k].length; // how big is this single wave
+    var curChunkCnt = Math.ceil(chunkSize/curChunkSize);  // how many waves to fill a chunk
+    for (var n = 0; n < curChunkCnt; n++) {
+      frameBuffer = frameBuffer.concat(waveBuffer[k]);
+    }
+
+    // Always keep at least 1 user input
+    if (waveBuffer.length > 1) waveBuffer.shift();
   }
-  modDataBuffer.length = 0;
+
+  frameBuffer.length = frameSize;
+  for (var j in frameBuffer) {
+    nowBuffering[j] = frameBuffer[j];
+  }
 
   return nowBuffering;
 }

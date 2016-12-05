@@ -1,3 +1,5 @@
+var maxFreq = 4500;
+
 function integrate( f, start, end, step ) {
 	var total = 0;
 	step = step || 0.01;
@@ -47,6 +49,8 @@ function addWaves() {
 
 
 function makeWave( type, freq, resolution ) {
+  freq = Math.min(freq, maxFreq);
+
 	var returnData = [];
 	switch ( type ) {
 	case 'sine':
@@ -61,6 +65,28 @@ function makeWave( type, freq, resolution ) {
 	default:
 		returnData = null;
 	}
+
 	return returnData;
+}
+
+function makeCleanWave( type, freq, resolution ) {
+  var dirty = makeWave(type, freq, resolution);
+  return cleanWave(dirty);
+}
+
+// Wave starts and ends at zero
+function cleanWave(returnData) {
+  var count = 0;
+
+  while (returnData[count] >= 0) {
+    count++;
+  }
+
+  while(returnData[count] <= 0) {
+    count++;
+  }
+
+  var cleanData = returnData.slice(0, count);
+  return cleanData;
 }
 
