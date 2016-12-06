@@ -1,66 +1,56 @@
-$fontStack: Monaco, 'Lucida Console', monospace
-
 $dark-background: #333
 $light-background: #555
 $light-border: #aaa
 
-*
-  margin: 0
-  padding: 0
-  border: 0
-
-body
-  background-color: $dark-background
-  color: #0ff
-  font-family: $fontStack
-  font-size: medium
-
-.clear
-  clear: both
-
-.button
-  display: block
-  min-width: 5em
-  padding: .5em
-  background-color: $light-background
-  color: #000
-  border-radius: .3em
-  text-align: center
-
-#startButton
-  background-color: #080
-  color: #fff
-  text-transform: uppercase
-
-#stopButton
-  background-color: #900
-  color: #fff
-  text-transform: uppercase
-
-#controls
-  position: absolute
-  left: 5%
-  top: 72%
-  height: 2em
-  color: #000
-  span
-    float: left
-    margin-right: 1em
-    margin-bottom: 1em
+#graphSet
+  margin-top: 3em
+  position: relative
 
 .graph
-  padding: 1em 2.5%
-  border: 1px solid $light-border
-  background-color: $light-background
-  canvas
-    width: 100%
-    height: 100%
+  width: 100%
+  height: 100%
+  padding: 5px
+  background-color: #ebeded
 
-#timeDomain
+#startStop
   position: absolute
-  top: 5%
-  left: 5%
-  width: 85%
-  height: 60%
-  color: #000
+  bottom: -2em
+  left: 50%
+  margin-left: -35px
+
+.typeSelect
+  button
+    width: 100%
+    margin-bottom: .3em
+
+footer
+  position: fixed
+  bottom: .5em
+  right: .5em
+
+.btn-circle
+  width: 30px
+  height: 30px
+  text-align: center
+  padding: 6px 0
+  font-size: 12px
+  line-height: 1.428571429
+  border-radius: 15px
+  border: 5px solid #fff
+
+.btn-circle.btn-lg
+  width: 50px
+  height: 50px
+  padding: 10px 16px
+  font-size: 18px
+  line-height: 1.33
+  border-radius: 25px
+
+.btn-circle.btn-xl
+  width: 70px
+  height: 70px
+  padding: 10px 16px
+  font-size: 24px
+  line-height: 1.33
+  border-radius: 35px
 

@@ -4,35 +4,62 @@ html
     meta(charset='utf-8')
     meta(http-equiv='X-UA-Compatible', content='IE=edge')
     title sigs
-    link(rel='stylesheet', href='/build/main.css')
     link(rel='apple-touch-icon', href='/assets/favicon.png')
+    link(rel='stylesheet', href='/build/main.css')
 
     script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js')
+
+    link(rel='stylesheet', href='/lib/bootstrap/bootstrap.min.css')
+    script(src='/lib/bootstrap/bootstrap.min.js')
 
     script(src='/socket.io/socket.io.js')
     script(src='/js/signalGen.js')
     script(src='/js/main.js')
 
-  body
-    div#controls
-      span#startButton.button(onclick='startButtonPressed()') Start
-      span#stopButton.button(onclick='stopButtonPressed()') Stop
+  body.container-fluid
+    div#graphSet.row.jumbotron
+      div.col-xs-6
+        div#timeDomain.panel.panel-primary
+          div.panel-heading
+            h4.panel-title
+              i.glyphicon.glyphicon-time
+              span &nbsp;&nbsp; Time Domain
+          div.panel-body
+            canvas#timeDomainCanvas.graph Your browser does not support the canvas element.
 
-      span.button Wave type: 
-        select#waveTypeSelect
-          option(value='sine') Sine
-          option(value='square') Square
-          option(value='saw') Sawtooth
-          option(value='tri') Triangle
+      div.col-xs-6
+        div#freqDomain.panel.panel-info
+          div.panel-heading
+            h4.panel-title
+              i.glyphicon.glyphicon-equalizer
+              span &nbsp;&nbsp; Frequency Domain
+          div.panel-body
+            canvas#freqDomainCanvas.graph Your browser does not support the canvas element.
 
-      span.button Modulation type: 
-        select#modTypeSelect
-          option(value='amp') Amplitude
-          option(value='freq') Frequency
+      div#startStop
+        button#startButton.btn.btn-circle.btn-xl.btn-success(type='button', onclick='startButtonPressed()')
+          i.glyphicon.glyphicon-play
+        button#stopButton.btn.btn-circle.btn-xl.btn-danger(type='button', onclick='stopButtonPressed()')
+          i.glyphicon.glyphicon-pause
 
-    div#timeDomain.graph
-      canvas#timeDomainCanvas Your browser does not support the canvas element.
 
-    //div#freqDomain.graph
-      canvas#freqDomainCanvas Your browser does not support the canvas element.
+    div#controls.row
+      div.col-md-2.col-md-offset-4
+        h5 Wave Type 
+        div#waveTypeSelect.typeSelect
+          button.btn.btn-xs.btn-info(value='sine') Sine
+          button.btn.btn-xs.btn-info(value='square') Square
+          button.btn.btn-xs.btn-info(value='saw') Sawtooth
+          button.btn.btn-xs.btn-info(value='tri') Triangle
+
+      div.col-md-2
+        h5 Modulation Type
+        div#modTypeSelect.typeSelect
+          button.btn.btn-xs.btn-warning(value='amp') Amplitude
+          button.btn.btn-xs.btn-warning(value='freq') Frequency
+
+
+    footer
+      a(href='https://github.com/richard92m/sigs')
+        img(src='/assets/octocat.png', width='20px')
 
