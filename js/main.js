@@ -71,6 +71,7 @@ else alert('Browser audio requirements not met');
 
 var channels = 1;
 var sampleRate = audioCtx.sampleRate;
+//var frameSize = 1050;  // factor of sample rate so freq modding fits nicely
 var frameSize = 1024;
 var sourceBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
 
@@ -78,7 +79,7 @@ var source;
 var timer;
 //var timerInterval = (frameSize / sampleRate);  // 50 works
 var timerInterval = 50;
-var drawPoints = 200;
+var drawPoints = 300;
 
 var playing = false;
 function playSound() {
@@ -174,13 +175,14 @@ function modAmp() {
   return nowBuffering;
 }
 
+var smallWaveBuffer = [];
 function modFreq() {
   var nowBuffering = sourceBuffer.getChannelData(0);
 
   var numChunks = modDataBuffer.length;
   if (numChunks !== 0) {
     for (var i = 0; i < numChunks; i++) {
-      waveBuffer.push( makeCleanWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
+      smallWaveBuffer.push( makeCleanWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
     }
   } else {
     numChunks = 1;
@@ -189,18 +191,65 @@ function modFreq() {
   var chunkSize = frameSize/numChunks;
   var frameBuffer = [];
 
-  for (var k = 0; k < numChunks && waveBuffer.length > 0; k++) {
-    var curChunkSize = waveBuffer[0].length; // how big is this single wave
+  for (var k = 0; k < numChunks && smallWaveBuffer.length > 0; k++) {
+    var curChunkSize = smallWaveBuffer[0].length; // how big is this single wave
     var curChunkCnt = Math.ceil(chunkSize/curChunkSize);  // how many waves to fill a chunk
-    for (var n = 0; n < curChunkCnt; n++) {
-      frameBuffer = frameBuffer.concat(waveBuffer[0]);
+
+    var translatedWave = [];
+    if (waveBuffer.length > 1) {  // dont try translating if wavebuffer is empty
+      // before you create the chunk, translate the small wave based on the
+      // last couple values of the wavebuffer
+      var firstSample = waveBuffer[waveBuffer.length-2];
+      var lastSample = waveBuffer[waveBuffer.length-1];
+
+      var goingUp = (firstSample < lastSample ? true : false);
+      var startPoint = 0;
+      if (goingUp && lastSample >= 0) {
+        while (smallWaveBuffer[0][startPoint] < lastSample) {
+          startPoint++;
+        }
+      } else if (goingUp && lastSample < 0) {
+        // start at the end and decrease until less than
+        startPoint = smallWaveBuffer[0].length - 1;
+        while (smallWaveBuffer[0][startPoint] > lastSample) {
+          startPoint--;
+        }
+      } else { // going down
+        while (smallWaveBuffer[0][startPoint] < 0.98) {
+          startPoint++;
+        }
+        while (smallWaveBuffer[0][startPoint] > lastSample) {
+          startPoint++;
+        }
+      }
+
+      for (var m = startPoint; m < smallWaveBuffer[0].length; m++) {
+        translatedWave.push(smallWaveBuffer[0][m]);
+      }
+      for (m = 0; m < startPoint; m++) {
+        translatedWave.push(smallWaveBuffer[0][m]);
+      }
+
+      //smallWaveBuffer[0] = translatedWave.slice();
+    } else {
+      translatedWave = smallWaveBuffer[0].slice();
     }
 
+    //console.log(translatedWave);
+    var waveChunkBuffer = [];
+    for (var n = 0; n < curChunkCnt; n++) {
+      //waveChunkBuffer = waveChunkBuffer.concat(smallWaveBuffer[0]);
+      waveChunkBuffer = waveChunkBuffer.concat(translatedWave);
+    }
+    //console.log(waveChunkBuffer);
+    waveBuffer = waveBuffer.concat(waveChunkBuffer);
+
     // Always keep at least 1 user input
-    if (waveBuffer.length > 1) waveBuffer.shift();
+    if (smallWaveBuffer.length > 1) smallWaveBuffer.shift();
   }
 
-  frameBuffer.length = frameSize;
+  frameBuffer = waveBuffer.splice(0, frameSize);
+
   for (var j in frameBuffer) {
     nowBuffering[j] = frameBuffer[j];
   }
