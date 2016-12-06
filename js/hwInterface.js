@@ -31,12 +31,6 @@ board.on( "ready", function () {
 		freq: pollRate
 	} );
 
-	var proximity2 = new five.Proximity( {
-		controller: "HCSR04",
-		pin: 8,
-		freq: pollRate
-	} );
-
 	proximity.on( "data", function () {
 		console.log( "Proximity  : ", rescaleData( this.cm ) );
 	} );
@@ -45,13 +39,19 @@ board.on( "ready", function () {
 		buffer1.push( rescaleData( this.cm ) );
 	} );
 
+	/*var proximity2 = new five.Proximity( {
+		controller: "HCSR04",
+		pin: 8,
+		freq: pollRate
+	} );
+
 	proximity2.on( "data", function () {
 		console.log( "Proximity2  : ", rescaleData( this.cm ) );
 	} );
 
 	proximity2.on( "data", function () {
 		buffer2.push( rescaleData( this.cm ) );
-	} );
+	} );*/
 } );
 
 function giveData( size ) {

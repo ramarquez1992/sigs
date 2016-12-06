@@ -3,7 +3,6 @@
 
 # sigs
 ### Arduino signal processing fun
-_Evan Kvidera, Richard Marquez, Nick Meyer_
 
 
 ## Requirements
@@ -12,7 +11,6 @@ _Evan Kvidera, Richard Marquez, Nick Meyer_
 - [Arduino](https://www.arduino.cc/en/Main/ArduinoBoardUno)
 - [HC-SR04](https://www.sparkfun.com/products/13959)
 - [JY-MCU](https://core-electronics.com.au/attachments/guides/Product-User-Guide-JY-MCU-Bluetooth-UART-R1-0.pdf)
-
 
 
 ## Installation
@@ -30,5 +28,4 @@ _Evan Kvidera, Richard Marquez, Nick Meyer_
 1. Connect  Arduino to power
 1. Execute `node index.js -b <port>`
 1. Navigate to [`http://localhost:8080`](http://localhost:8080) in web browser
-
 
