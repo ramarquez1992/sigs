@@ -1,6 +1,6 @@
 // GENERAL INIT
 var socket = io.connect('http://localhost:8080');
-var modType = 'amp';
+var modType = 'none';
 var waveType = 'sine';
 var defaultTone = 440;  // Hz (concert A)
 var baseTone = defaultTone;
@@ -71,36 +71,63 @@ else alert('Browser audio requirements not met');
 
 var channels = 1;
 var sampleRate = audioCtx.sampleRate;
-var frameSize = 512;
-var arrayBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
+var frameSize = 1024;
+var sourceBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
 
 var source;
 var timer;
-var timerInterval = 25;  // OR (1 / (sampleRate/frameSize))
+//var timerInterval = (frameSize / sampleRate);  // 50 works
+var timerInterval = 50;
 var drawPoints = 200;
 
+var playing = false;
+function createSource() {
+  source = audioCtx.createBufferSource();
+  source.loop = false;
+  source.buffer = sourceBuffer;
+  source.connect(audioCtx.destination);
+  modAmp();
+  source.onended = function() {
+    if (playing) createSource();
+  };
+  source.start();
+}
+
 function startSound() {
+  playing = true;
   modDataBuffer.length = 0;  // clear old data
 
-  source = audioCtx.createBufferSource();
+  createSource();
+  /*source = audioCtx.createBufferSource();
   source.loop = true;
-  source.buffer = arrayBuffer;
+  source.buffer = sourceBuffer;
   source.connect(audioCtx.destination);
-  source.start();
+  source.onended = function() { console.log('ended'); };
+  source.start();*/
+
+  /*var nowBuffering = sourceBuffer.getChannelData(0);
+  waveBuffer = makeWave(waveType, baseTone, sampleRate);
+  var frameBuffer = waveBuffer.slice(0, frameSize);
+  for (var i in frameBuffer) {
+    nowBuffering[i] = frameBuffer[i];
+  }*/
 
   timer = window.setInterval(function() {
-    var outBuffer;
-
     switch (modType) {
+      case 'none':
+        //noMod();
+        break;
       case 'amp':
-        outBuffer = modAmp();
+        modAmp();
         break;
       case 'freq':
-        outBuffer = modFreq();
+        modFreq();
         break;
       default:
         console.log('Unknown modulation type');
     }
+
+    var outBuffer = sourceBuffer.getChannelData(0);
 
     // Trim number of points that will be drawn
     var drawBuffer = [];
@@ -114,19 +141,37 @@ function startSound() {
 }
 
 function stopSound() {
-  source.stop();
+  //source.stop();
+  playing = false;
   clearInterval(timer);
 }
 
 var waveBuffer = [];
-function modAmp() {
-  var nowBuffering = arrayBuffer.getChannelData(0);
+function noMod() {
+  var nowBuffering = sourceBuffer.getChannelData(0);
 
   while (waveBuffer.length < frameSize) {
-    waveBuffer = waveBuffer.concat( makeCleanWave(waveType, baseTone, sampleRate) );
+    //waveBuffer = waveBuffer.concat( makeCleanWave(waveType, baseTone, sampleRate) );
+    waveBuffer = waveBuffer.concat( makeWave(waveType, baseTone, sampleRate) );
   }
-  var frameBuffer = waveBuffer.slice(0, frameSize);
-  waveBuffer.splice(0, frameSize);
+  var frameBuffer = waveBuffer.splice(0, frameSize);
+
+  for (var i in frameBuffer) {
+    nowBuffering[i] = frameBuffer[i];
+  }
+
+  return nowBuffering;
+}
+
+function modAmp() {
+  var nowBuffering = sourceBuffer.getChannelData(0);
+
+  //waveBuffer = makeWave(waveType, baseTone, sampleRate);
+  //console.log(waveBuffer);
+  while (waveBuffer.length < frameSize) {
+    waveBuffer = waveBuffer.concat( makeWave(waveType, baseTone, sampleRate) );
+  }
+  var frameBuffer = waveBuffer.splice(0, frameSize);
 
   var chunkSize = frameSize/modDataBuffer.length;
 
@@ -143,7 +188,7 @@ function modAmp() {
 }
 
 function modFreq() {
-  var nowBuffering = arrayBuffer.getChannelData(0);
+  var nowBuffering = sourceBuffer.getChannelData(0);
 
   var numChunks = modDataBuffer.length;
   if (numChunks !== 0) {
