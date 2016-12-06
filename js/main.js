@@ -15,12 +15,16 @@ $(document).ready(function() {
 function initGUI() {
   $('#stopButton').hide();
 
-  $('#waveTypeSelect').on('change', function() {
-    setWaveType(this.value);
+  $('#waveTypeSelect').children().each(function() {
+    this.onclick = function() {
+      setWaveType(this.value);
+    };
   });
 
-  $('#modTypeSelect').on('change', function() {
-    setModType(this.value);
+  $('#modTypeSelect').children().each(function() {
+    this.onclick = function() {
+      setModType(this.value);
+    };
   });
 }
 
