@@ -1,6 +1,3 @@
-#!/usr/bin/env node
-
-// INCLUDES
 var webServer = require('./js/webServer.js'),
   uno = require('./js/hwInterface.js');
 

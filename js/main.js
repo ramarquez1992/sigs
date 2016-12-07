@@ -190,30 +190,31 @@ function modFreq() {
   var chunkSize = frameSize / numChunks;
 
   // Fill the frameBuffer w/ numChunks # of chunks
-  for (var k = 0; k < numChunks && waveBuffer.length > 0; k++) {
+  for (var i = 0; i < numChunks && waveBuffer.length > 0; i++) {
 
     // If frameBuffer has contents translate the new chunk to match the end of the current frameBuffer
     var translatedWave = [];
-    if (frameBuffer.length > 1) {  // dont try translating if frameBuffer is empty
-      // before you create the chunk, translate the single wave based on the
+    if (frameBuffer.length > 1) {  // Don't try translating if frameBuffer is empty
+      // Before you create the chunk, translate the single wave based on the
       // last couple values of the frameBuffer
       var firstSample = frameBuffer[frameBuffer.length - 2];
       var lastSample = frameBuffer[frameBuffer.length - 1];
 
-      var goingUp = (firstSample < lastSample ? true : false);
       var startPoint = 0;
+
+      var goingUp = (firstSample < lastSample ? true : false);
       if (goingUp && lastSample >= 0) {
-        while (waveBuffer[0][startPoint] < lastSample) {  // !!!!
+        while (waveBuffer[0][startPoint] <= lastSample) {
           startPoint++;
         }
       } else if (goingUp && lastSample < 0) {
         // start at the end and decrease until less than
         startPoint = waveBuffer[0].length - 1;
-        while (waveBuffer[0][startPoint] > lastSample) {  // !!!!
+        while (waveBuffer[0][startPoint] >= lastSample) {
           startPoint--;
         }
       } else { // going down
-        while (waveBuffer[0][startPoint] < 0.98) {
+        while (waveBuffer[0][startPoint] <= 0.98) {
           startPoint++;
         }
         while (waveBuffer[0][startPoint] >= lastSample) {
@@ -221,11 +222,12 @@ function modFreq() {
         }
       }
 
-      for (var m = startPoint; m < waveBuffer[0].length; m++) {
-        translatedWave.push(waveBuffer[0][m]);
+
+      for (var j = startPoint; j < waveBuffer[0].length; j++) {
+        translatedWave.push(waveBuffer[0][j]);
       }
-      for (m = 0; m < startPoint; m++) {
-        translatedWave.push(waveBuffer[0][m]);
+      for (j = 0; j < startPoint; j++) {
+        translatedWave.push(waveBuffer[0][j]);
       }
 
     } else {
@@ -236,20 +238,14 @@ function modFreq() {
     var curChunkCnt = Math.ceil(chunkSize / curWaveSize);  // How many waves to fill a chunk
 
     var waveChunkBuffer = [];
-    for (var n = 0; n < curChunkCnt; n++) {
-      //waveChunkBuffer = waveChunkBuffer.concat(waveBuffer[0]);
+    for (var k = 0; k < curChunkCnt; k++) {
       waveChunkBuffer = waveChunkBuffer.concat(translatedWave);
     }
 
-    waveChunkBuffer = waveChunkBuffer.splice(0, chunkSize);
-    //console.log('first 3: ' + translatedWave[0] + ' ' + translatedWave[1] + ' ' + translatedWave[2]);
-    //console.log('last 3: ' + translatedWave[translatedWave.length-3] + ' ' + translatedWave[translatedWave.length-2] + ' ' + translatedWave[translatedWave.length-1]);
-    //console.log( waveBuffer[0][waveBuffer.length-3] + ' ' +  waveBuffer[0][waveBuffer.length-2] + ' ' +  waveBuffer[0][waveBuffer.length-1]);
-    //console.log( waveBuffer[0][0] + ' ' +  waveBuffer[0][1] + ' ' +  waveBuffer[0][2]);
-    //console.log('curWaveSize: ' + curWaveSize + ' wcb.len: ' + waveChunkBuffer.length + ' chunksize: ' + chunkSize);
-    //console.log('first 3: ' + waveChunkBuffer[0] + ' ' + waveChunkBuffer[1] + ' ' + waveChunkBuffer[2]);
-    //console.log('last 3: ' + waveChunkBuffer[waveChunkBuffer.length-3] + ' ' + waveChunkBuffer[waveChunkBuffer.length-2] + ' ' + waveChunkBuffer[waveChunkBuffer.length-1]);
-
+    // Let square overshoot its chunk to avoid having to translate w/ no reference to phase
+    if (waveType !== 'square') {
+      waveChunkBuffer = waveChunkBuffer.splice(0, chunkSize);
+    }
 
     frameBuffer = frameBuffer.concat(waveChunkBuffer);
 
@@ -258,12 +254,12 @@ function modFreq() {
   }
 
   var nowBuffering = sourceBuffer.getChannelData(0);
-  for (var j in nowBuffering) {
+  for (i in nowBuffering) {
     // Keep at least 2 in frameBuffer MFSK translation has data to work from
     var nextSample = frameBuffer[0];
     if (frameBuffer.length > 2) frameBuffer.shift();
 
-    nowBuffering[j] = nextSample;
+    nowBuffering[i] = nextSample;
   }
 
 }

@@ -107,5 +107,7 @@ function cleanWave( inWave, type ) {
   }
 
   var cleanData = inWave.slice( 0, count );
-  return cleanData;
+	if ( type === 'square' ) cleanData.splice(0, 1);
+
+	return cleanData;
 }
