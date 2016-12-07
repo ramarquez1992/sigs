@@ -14,6 +14,7 @@ html
 
     script(src='/socket.io/socket.io.js')
     script(src='/js/signalGen.js')
+    script(src='/js/visualization.js')
     script(src='/js/main.js')
 
   body.container-fluid
@@ -55,6 +56,7 @@ html
       div.col-md-2
         h5 Modulation Type
         div#modTypeSelect.typeSelect
+          button.btn.btn-xs.btn-warning(value='none') None
           button.btn.btn-xs.btn-warning(value='amp') Amplitude
           button.btn.btn-xs.btn-warning(value='freq') Frequency
 

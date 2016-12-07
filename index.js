@@ -1,25 +1,11 @@
-#!/usr/bin/env node
-
-// INCLUDES
-var path = require('path'),
-  argv = require('minimist')(process.argv.slice(2)),
-  five = require('johnny-five'),
-  webServer = require('./js/webServer.js'),
-  socket = null;
+var webServer = require('./js/webServer.js'),
+  uno = require('./js/hwInterface.js');
 
 
 // SERVER
+var socket = null;
 var serverPort = 8080;
 webServer.start(serverPort);
-
-
-// HARDWARE
-var uno = require('./js/hwInterface.js');
-var maxBufferSize = 10;
-
-function sendData() {
-  socket.emit('newDataRcvd', uno.getData(maxBufferSize));
-}
 
 
 // SOCKET CONTROLLER
@@ -29,14 +15,21 @@ webServer.io.sockets.on('connection', function (s) {
 
   setInterval(function() {
     sendData();
-  }, 50);
+  }, 10);  // TODO: dynamically set to frameSize/sampleRate
 
   socket.on('clrBuffer', uno.clrBuffer);
 });
+
+
+// HARDWARE
+var maxBufferSize = 10;
+
+function sendData() {
+  socket.emit('newDataRcvd', uno.getData(maxBufferSize));
+}
 
 
 // MISC FUNCS
 function hertzToMs(hz) {
  return 1 / (hz * 1000);
 }
-

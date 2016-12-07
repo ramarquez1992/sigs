@@ -1,5 +1,5 @@
-var five = require( "johnny-five" );
-var argv = require( 'minimist' )( process.argv.slice( 2 ) );
+var five = require( "johnny-five" ),
+  argv = require( 'minimist' )( process.argv.slice( 2 ) );
 
 // PARSE ARGUMENTS
 var boardPath = null;
