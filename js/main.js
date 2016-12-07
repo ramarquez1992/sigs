@@ -61,14 +61,22 @@ var smallWaveBuffer = [];
 // IN MODULATION DATA
 var modDataBuffer = [];
 function newDataRcvd(inBuffer) {
+  if (!playing) return;
+
   for (var i in inBuffer) {
     modDataBuffer.push(inBuffer[i]);
 
     if (modType === 'freq') {
-      smallWaveBuffer.push(makeCleanWave(waveType, baseTone / modDataBuffer.shift(), sampleRate));
+      smallWaveBuffer.push(makeCleanWave(waveType, (baseTone / modDataBuffer.shift()), sampleRate));
+
+    } else {
+      while (waveBuffer.length < frameSize) {
+        waveBuffer = waveBuffer.concat( makeWave(waveType, baseTone, sampleRate) );
+      }
     }
   }
 
+  //console.log(smallWaveBuffer[0]);
 }
 
 // AUDIO INIT
@@ -80,8 +88,9 @@ else alert('Browser audio requirements not met');
 
 var channels = 1;
 var sampleRate = audioCtx.sampleRate;
-//var frameSize = 1050;  // factor of sample rate so freq modding fits nicely
+//var frameSize = 1050;  // ??? factor of sample rate so freq modding fits nicely
 var frameSize = 1024;
+//var frameSize = 512;
 //var frameSize = 4096;
 var sourceBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
 
@@ -120,6 +129,8 @@ function playSound() {
   source.start();
 }
 
+var bufferResetTimer;
+
 function startSound() {
   playing = true;
   modDataBuffer.length = 0;  // clear old data
@@ -127,6 +138,13 @@ function startSound() {
   smallWaveBuffer.length = 0;
 
   playSound();
+
+  bufferResetTimer = window.setInterval(function() {
+    modDataBuffer.length = 0;  // clear old data
+    waveBuffer.length = 0;
+    smallWaveBuffer.length = 0;
+
+  }, 2000);
 
   timer = window.setInterval(function() {
     var outBuffer = sourceBuffer.getChannelData(0);
@@ -143,16 +161,15 @@ function startSound() {
 }
 
 function stopSound() {
-  //source.stop();
   playing = false;
   clearInterval(timer);
+  clearInterval(bufferResetTimer);
 }
 
 function noMod() {
   var nowBuffering = sourceBuffer.getChannelData(0);
 
   while (waveBuffer.length < frameSize) {
-    //waveBuffer = waveBuffer.concat( makeCleanWave(waveType, baseTone, sampleRate) );
     waveBuffer = waveBuffer.concat( makeWave(waveType, baseTone, sampleRate) );
   }
   var frameBuffer = waveBuffer.splice(0, frameSize);
@@ -168,9 +185,7 @@ function modAmp() {
   var nowBuffering = sourceBuffer.getChannelData(0);
 
   //makeWave(waveType, baseTone, sampleRate);
-  while (waveBuffer.length < frameSize) {
-    waveBuffer = waveBuffer.concat( makeWave(waveType, baseTone, sampleRate) );
-  }
+
   var frameBuffer = waveBuffer.splice(0, frameSize);
 
   var chunkSize = frameSize/modDataBuffer.length;
@@ -191,14 +206,8 @@ function modFreq() {
   var nowBuffering = sourceBuffer.getChannelData(0);
 
   var numChunks = modDataBuffer.length;
-  if (numChunks !== 0) {
-    /*for (var i = 0; i < numChunks; i++) {
-      smallWaveBuffer.push( makeCleanWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
-      //smallWaveBuffer.push( makeWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
-    }*/
-  } else {
-    numChunks = 1;
-  }
+  //var numChunks = smallWaveBuffer.length;
+  if (numChunks === 0) numChunks = 1;
 
   var chunkSize = frameSize/numChunks;
   var frameBuffer = [];
@@ -246,6 +255,8 @@ function modFreq() {
     } else {
       translatedWave = smallWaveBuffer[0].slice();
     }
+    translatedWave = smallWaveBuffer[0].slice();
+
 
     //console.log(translatedWave);
     var waveChunkBuffer = [];
