@@ -54,12 +54,21 @@ function initSocket() {
   socket.on('newDataRcvd', newDataRcvd);
 }
 
+var waveBuffer = [];
+var smallWaveBuffer = [];
+
+
 // IN MODULATION DATA
 var modDataBuffer = [];
 function newDataRcvd(inBuffer) {
   for (var i in inBuffer) {
     modDataBuffer.push(inBuffer[i]);
+
+    if (modType === 'freq') {
+      smallWaveBuffer.push(makeCleanWave(waveType, baseTone / modDataBuffer.shift(), sampleRate));
+    }
   }
+
 }
 
 // AUDIO INIT
@@ -73,6 +82,7 @@ var channels = 1;
 var sampleRate = audioCtx.sampleRate;
 //var frameSize = 1050;  // factor of sample rate so freq modding fits nicely
 var frameSize = 1024;
+//var frameSize = 4096;
 var sourceBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
 
 var source;
@@ -113,6 +123,8 @@ function playSound() {
 function startSound() {
   playing = true;
   modDataBuffer.length = 0;  // clear old data
+  waveBuffer.length = 0;
+  smallWaveBuffer.length = 0;
 
   playSound();
 
@@ -136,7 +148,6 @@ function stopSound() {
   clearInterval(timer);
 }
 
-var waveBuffer = [];
 function noMod() {
   var nowBuffering = sourceBuffer.getChannelData(0);
 
@@ -156,6 +167,7 @@ function noMod() {
 function modAmp() {
   var nowBuffering = sourceBuffer.getChannelData(0);
 
+  //makeWave(waveType, baseTone, sampleRate);
   while (waveBuffer.length < frameSize) {
     waveBuffer = waveBuffer.concat( makeWave(waveType, baseTone, sampleRate) );
   }
@@ -175,15 +187,15 @@ function modAmp() {
   return nowBuffering;
 }
 
-var smallWaveBuffer = [];
 function modFreq() {
   var nowBuffering = sourceBuffer.getChannelData(0);
 
   var numChunks = modDataBuffer.length;
   if (numChunks !== 0) {
-    for (var i = 0; i < numChunks; i++) {
+    /*for (var i = 0; i < numChunks; i++) {
       smallWaveBuffer.push( makeCleanWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
-    }
+      //smallWaveBuffer.push( makeWave(waveType, baseTone/modDataBuffer.shift(), sampleRate) );
+    }*/
   } else {
     numChunks = 1;
   }

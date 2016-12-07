@@ -29,7 +29,7 @@ webServer.io.sockets.on('connection', function (s) {
 
   setInterval(function() {
     sendData();
-  }, 50);
+  }, 25);
 
   socket.on('clrBuffer', uno.clrBuffer);
 });
