@@ -189,34 +189,34 @@ function modFreq() {
   var numChunks = (waveBuffer.length === 0 ? 1 : waveBuffer.length);
   var chunkSize = frameSize / numChunks;
 
+  // Fill the frameBuffer w/ numChunks # of chunks
   for (var k = 0; k < numChunks && waveBuffer.length > 0; k++) {
-    var curChunkSize = waveBuffer[0].length; // how big is this single wave
-    var curChunkCnt = Math.ceil(chunkSize/curChunkSize);  // how many waves to fill a chunk
 
+    // If frameBuffer has contents translate the new chunk to match the end of the current frameBuffer
     var translatedWave = [];
-    if (frameBuffer.length > 1) {  // dont try translating if wavebuffer is empty
-      // before you create the chunk, translate the small wave based on the
-      // last couple values of the wavebuffer
-      var firstSample = frameBuffer[frameBuffer.length-2];
-      var lastSample = frameBuffer[frameBuffer.length-1];
+    if (frameBuffer.length > 1) {  // dont try translating if frameBuffer is empty
+      // before you create the chunk, translate the single wave based on the
+      // last couple values of the frameBuffer
+      var firstSample = frameBuffer[frameBuffer.length - 2];
+      var lastSample = frameBuffer[frameBuffer.length - 1];
 
       var goingUp = (firstSample < lastSample ? true : false);
       var startPoint = 0;
       if (goingUp && lastSample >= 0) {
-        while (waveBuffer[0][startPoint] < lastSample) {
+        while (waveBuffer[0][startPoint] < lastSample) {  // !!!!
           startPoint++;
         }
       } else if (goingUp && lastSample < 0) {
         // start at the end and decrease until less than
         startPoint = waveBuffer[0].length - 1;
-        while (waveBuffer[0][startPoint] > lastSample) {
+        while (waveBuffer[0][startPoint] > lastSample) {  // !!!!
           startPoint--;
         }
       } else { // going down
         while (waveBuffer[0][startPoint] < 0.98) {
           startPoint++;
         }
-        while (waveBuffer[0][startPoint] > lastSample) {
+        while (waveBuffer[0][startPoint] >= lastSample) {
           startPoint++;
         }
       }
@@ -228,18 +228,29 @@ function modFreq() {
         translatedWave.push(waveBuffer[0][m]);
       }
 
-      //waveBuffer[0] = translatedWave.slice();
     } else {
-      //translatedWave = waveBuffer[0].slice();
+      translatedWave = waveBuffer[0].slice();
     }
-    translatedWave = waveBuffer[0].slice();
 
+    var curWaveSize = translatedWave.length;  // How big is this single wave
+    var curChunkCnt = Math.ceil(chunkSize / curWaveSize);  // How many waves to fill a chunk
 
     var waveChunkBuffer = [];
     for (var n = 0; n < curChunkCnt; n++) {
       //waveChunkBuffer = waveChunkBuffer.concat(waveBuffer[0]);
       waveChunkBuffer = waveChunkBuffer.concat(translatedWave);
     }
+
+    waveChunkBuffer = waveChunkBuffer.splice(0, chunkSize);
+    //console.log('first 3: ' + translatedWave[0] + ' ' + translatedWave[1] + ' ' + translatedWave[2]);
+    //console.log('last 3: ' + translatedWave[translatedWave.length-3] + ' ' + translatedWave[translatedWave.length-2] + ' ' + translatedWave[translatedWave.length-1]);
+    //console.log( waveBuffer[0][waveBuffer.length-3] + ' ' +  waveBuffer[0][waveBuffer.length-2] + ' ' +  waveBuffer[0][waveBuffer.length-1]);
+    //console.log( waveBuffer[0][0] + ' ' +  waveBuffer[0][1] + ' ' +  waveBuffer[0][2]);
+    //console.log('curWaveSize: ' + curWaveSize + ' wcb.len: ' + waveChunkBuffer.length + ' chunksize: ' + chunkSize);
+    //console.log('first 3: ' + waveChunkBuffer[0] + ' ' + waveChunkBuffer[1] + ' ' + waveChunkBuffer[2]);
+    //console.log('last 3: ' + waveChunkBuffer[waveChunkBuffer.length-3] + ' ' + waveChunkBuffer[waveChunkBuffer.length-2] + ' ' + waveChunkBuffer[waveChunkBuffer.length-1]);
+
+
     frameBuffer = frameBuffer.concat(waveChunkBuffer);
 
     // Always keep at least 1 user input to account for input lag
@@ -248,8 +259,13 @@ function modFreq() {
 
   var nowBuffering = sourceBuffer.getChannelData(0);
   for (var j in nowBuffering) {
-    nowBuffering[j] = frameBuffer.shift();
+    // Keep at least 2 in frameBuffer MFSK translation has data to work from
+    var nextSample = frameBuffer[0];
+    if (frameBuffer.length > 2) frameBuffer.shift();
+
+    nowBuffering[j] = nextSample;
   }
+
 }
 
 
@@ -280,7 +296,7 @@ function beep(duration, frequency, volume, type, callback) {
 
 
 // VISUALIZATION
-var drawPoints = 300;
+var drawPoints = 500;
 var drawTimer;
 var drawInterval = 50; // use (frameSize / sampleRate) to redraw every frame
 
