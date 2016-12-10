@@ -4,8 +4,14 @@ var modType = 'amp';
 var waveType = 'sine';
 var defaultTone = 440;  // Hz (concert A)
 var baseTone = defaultTone;
+var notes;
 
 $(document).ready(function() {
+  // Remember this is called asynchronously
+  $.getJSON( '/js/notes.json', function( data ) {
+    notes = data;
+  });
+
   initSocket();
   initGUI();
 });
