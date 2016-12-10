@@ -11,9 +11,9 @@ function integrate( f, start, end, step ) {
 
 function sineData( freq, sampleRate ) {
 	var dataArray = [];
-	var numPoints = Math.floor( sampleRate / freq );
+	var waveLength = Math.floor( sampleRate / freq );
 
-	for ( var i = 0; i < Math.floor( numPoints ); i++ ) {
+	for ( var i = 0; i < Math.floor( waveLength ); i++ ) {
 		dataArray.push( Math.sin( ( 2 * Math.PI / sampleRate ) * freq * i ) );
 	}
 	return dataArray;
@@ -29,9 +29,9 @@ function squareData( freq, sampleRate ) {
 
 function triData( freq, sampleRate ) {
 	var dataArray = [];
-	var numPoints = Math.floor( sampleRate / freq );
+	var waveLength = Math.floor( sampleRate / freq );
 
-	for ( var i = 0; i < numPoints; i++ ) {
+	for ( var i = 0; i < waveLength; i++ ) {
 		dataArray.push(
 			( 2 / Math.PI ) * Math.asin( Math.sin( 2 * Math.PI * freq * i / sampleRate ) )
 		);
@@ -41,9 +41,9 @@ function triData( freq, sampleRate ) {
 
 function sawData( freq, sampleRate ) {
 	var dataArray = [];
-	var numPoints = Math.floor( sampleRate / freq );
+	var waveLength = Math.floor( sampleRate / freq );
 
-	for ( var i = 0; i < numPoints; i++ ) {
+	for ( var i = 0; i < waveLength; i++ ) {
 		dataArray.push(
 			2 * ( freq * ( i / sampleRate ) % 1 ) - 1
 		);
