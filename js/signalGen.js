@@ -9,37 +9,43 @@ function integrate( f, start, end, step ) {
 	return total;
 }
 
-function sineData( freq, numPoints ) {
+function sineData( freq, sampleRate ) {
 	var dataArray = [];
-	for ( var i = 0; i < numPoints; i++ ) {
-		dataArray.push( Math.sin( ( 2 * Math.PI / numPoints ) * freq * i ) );
+	var numPoints = Math.floor( sampleRate / freq );
+
+	for ( var i = 0; i < Math.floor( numPoints ); i++ ) {
+		dataArray.push( Math.sin( ( 2 * Math.PI / sampleRate ) * freq * i ) );
 	}
 	return dataArray;
 }
 
-function squareData( freq, numPoints ) {
-	var dataArray = sineData( freq, numPoints );
+function squareData( freq, sampleRate ) {
+	var dataArray = sineData( freq, sampleRate );
 	for ( var i = 0; i < dataArray.length; i++ ) {
 		dataArray[ i ] = Math.sign( dataArray[ i ] );
 	}
 	return dataArray;
 }
 
-function triData( freq, numPoints ) {
+function triData( freq, sampleRate ) {
 	var dataArray = [];
+	var numPoints = Math.floor( sampleRate / freq );
+
 	for ( var i = 0; i < numPoints; i++ ) {
 		dataArray.push(
-			( 2 / Math.PI ) * Math.asin( Math.sin( 2 * Math.PI * freq * i / numPoints ) )
+			( 2 / Math.PI ) * Math.asin( Math.sin( 2 * Math.PI * freq * i / sampleRate ) )
 		);
 	}
 	return dataArray;
 }
 
-function sawData( freq, numPoints ) {
+function sawData( freq, sampleRate ) {
 	var dataArray = [];
+	var numPoints = Math.floor( sampleRate / freq );
+
 	for ( var i = 0; i < numPoints; i++ ) {
 		dataArray.push(
-			2 * ( freq * ( i / numPoints ) % 1 ) - 1
+			2 * ( freq * ( i / sampleRate ) % 1 ) - 1
 		);
 	}
 	return dataArray;
@@ -83,33 +89,6 @@ function makeWave( type, freq, resolution ) {
 	return returnData;
 }
 
-function makeCleanWave( type, freq, resolution ) {
-	var dirty = makeWave( type, freq, resolution );
-	return cleanWave( dirty, type );
-}
-
-// Return a single wave that starts and ends at zero
-function cleanWave( inWave, type ) {
-  var count = 0;
-
-  if ( type === 'saw' ) {
-    while ( inWave[ count] <= 0.98 ) {
-      count++;
-    }
-  } else {
-    while ( inWave[ count ] >= 0 ) {
-      count++;
-    }
-
-    while ( inWave[ count ] < 0 ) {
-      count++;
-    }
-  }
-
-  var cleanData = inWave.slice( 1, count );  // Remove initial zero so it doesn't appear "twice" when combining waves
-
-	return cleanData;
-}
 
 function mfsk(freqSet, frameSize) {
 	//return full frame appropriately modded
@@ -123,7 +102,6 @@ function translate(baseWave, inWave) {
 		return inWave.slice();
 	}
 
-
 	// Find point where inWave should start to match baseWave
 	// TODO: calculate start point using instantaneous phase
 
@@ -132,7 +110,7 @@ function translate(baseWave, inWave) {
 	var lastSample = baseWave[baseWave.length - 1];
 
 	var startPoint = 0;
-	var goingUp = (firstSample < lastSample ? true : false);
+	var goingUp = firstSample < lastSample;
 
 	if (goingUp && lastSample >= 0) {  // 0-90 deg
 		while (inWave[startPoint] <= lastSample) {

@@ -73,6 +73,7 @@ var bufferResetTimer;
 var bufferResetInterval = 1000;
 
 // Clear old data occasionally to prevent latency woes
+// Only necessary for sq because of its current lack of MFSK
 function resetBuffers() {
   modDataBuffer.length = 0;
   frameBuffer.length = 0;
@@ -96,7 +97,7 @@ function bufferWaves() {
   for (var i = 0; i < modDataBuffer.length; i++) {
     switch (modType) {
       case 'freq':
-        waveBuffer.push(makeCleanWave(waveType, (baseTone / modDataBuffer.shift()), sampleRate));
+        waveBuffer.push(makeWave(waveType, (baseTone / modDataBuffer.shift()), sampleRate));
         break;
 
       default:
@@ -113,7 +114,7 @@ var audioCtx = getAudioCtx();
 
 var channels = 1;  // mono
 var sampleRate = audioCtx.sampleRate;  // typically 44.1k
-var frameSize = 512;  // use factor of sample rate??? (e.g. 1050)
+var frameSize = 1024;  // use factor of sample rate??? (e.g. 1050)
 
 var sourceBuffer = audioCtx.createBuffer(channels, frameSize, sampleRate);
 var source;
@@ -154,7 +155,11 @@ function startSound() {
 
   playSound();
 
-  //bufferResetTimer = window.setInterval(resetBuffers, bufferResetInterval);
+  bufferResetTimer = window.setInterval(function() {
+    if (waveType === 'square') {
+      resetBuffers();
+    }
+  }, bufferResetInterval);
   drawTimer = window.setInterval(updateVisualization, drawInterval);
 }
 
@@ -261,17 +266,16 @@ function beep(duration, frequency, volume, type, callback) {
 
 
 // VISUALIZATION
-var drawPoints = 500;
+var drawFrameScaleFactor = 8;  // shows only the first 8th of the frame
 var drawTimer;
-var drawInterval = 50; // use (frameSize / sampleRate) to redraw every frame
+var drawInterval = ((frameSize / sampleRate) * 1000);  // redraws every frame
 
 function updateVisualization() {
   var outBuffer = sourceBuffer.getChannelData(0);
 
   // Trim number of points that will be drawn
   var drawBuffer = [];
-  var drawInterval = parseInt(outBuffer.length/drawPoints);
-  for (var i = 0; i < outBuffer.length; i += drawInterval) {
+  for (var i = 0; i < outBuffer.length/drawFrameScaleFactor; i ++) {
     drawBuffer.push(outBuffer[i]);
   }
   draw(drawBuffer, 0, 'timeDomainCanvas');
