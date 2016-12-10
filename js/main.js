@@ -4,8 +4,14 @@ var modType = 'amp';
 var waveType = 'sine';
 var defaultTone = 440;  // Hz (concert A)
 var baseTone = defaultTone;
+var notes;
 
 $(document).ready(function() {
+  // Remember this is called asynchronously
+  $.getJSON( '/js/notes.json', function( data ) {
+    notes = data;
+  });
+
   initSocket();
   initGUI();
 });
@@ -148,7 +154,7 @@ function startSound() {
 
   playSound();
 
-  bufferResetTimer = window.setInterval(resetBuffers, bufferResetInterval);
+  //bufferResetTimer = window.setInterval(resetBuffers, bufferResetInterval);
   drawTimer = window.setInterval(updateVisualization, drawInterval);
 }
 
@@ -187,52 +193,14 @@ function modAmp() {
 
 function modFreq() {
   var numChunks = (waveBuffer.length === 0 ? 1 : waveBuffer.length);
-  var chunkSize = frameSize / numChunks;
+  var chunkSize = parseInt(frameSize / numChunks);
 
   // Fill the frameBuffer w/ numChunks # of chunks
   for (var i = 0; i < numChunks && waveBuffer.length > 0; i++) {
 
     // If frameBuffer has contents translate the new chunk to match the end of the current frameBuffer
-    var translatedWave = [];
-    if (frameBuffer.length > 1) {  // Don't try translating if frameBuffer is empty
-      // Before you create the chunk, translate the single wave based on the
-      // last couple values of the frameBuffer
-      var firstSample = frameBuffer[frameBuffer.length - 2];
-      var lastSample = frameBuffer[frameBuffer.length - 1];
+    var translatedWave = translate(frameBuffer, waveBuffer[0]);
 
-      var startPoint = 0;
-
-      var goingUp = (firstSample < lastSample ? true : false);
-      if (goingUp && lastSample >= 0) {
-        while (waveBuffer[0][startPoint] <= lastSample) {
-          startPoint++;
-        }
-      } else if (goingUp && lastSample < 0) {
-        // start at the end and decrease until less than
-        startPoint = waveBuffer[0].length - 1;
-        while (waveBuffer[0][startPoint] >= lastSample) {
-          startPoint--;
-        }
-      } else { // going down
-        while (waveBuffer[0][startPoint] <= 0.98) {
-          startPoint++;
-        }
-        while (waveBuffer[0][startPoint] >= lastSample) {
-          startPoint++;
-        }
-      }
-
-
-      for (var j = startPoint; j < waveBuffer[0].length; j++) {
-        translatedWave.push(waveBuffer[0][j]);
-      }
-      for (j = 0; j < startPoint; j++) {
-        translatedWave.push(waveBuffer[0][j]);
-      }
-
-    } else {
-      translatedWave = waveBuffer[0].slice();
-    }
 
     var curWaveSize = translatedWave.length;  // How big is this single wave
     var curChunkCnt = Math.ceil(chunkSize / curWaveSize);  // How many waves to fill a chunk
@@ -253,6 +221,7 @@ function modFreq() {
     if (waveBuffer.length > 1) waveBuffer.shift();
   }
 
+  //frameBuffer.shift();frameBuffer.shift();
   var nowBuffering = sourceBuffer.getChannelData(0);
   for (i in nowBuffering) {
     // Keep at least 2 in frameBuffer MFSK translation has data to work from
