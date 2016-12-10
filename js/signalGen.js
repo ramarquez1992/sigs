@@ -101,13 +101,12 @@ function cleanWave( inWave, type ) {
       count++;
     }
 
-    while ( inWave[ count ] <= 0 ) {
+    while ( inWave[ count ] < 0 ) {
       count++;
     }
   }
 
-  var cleanData = inWave.slice( 0, count );
-	if ( type === 'square' ) cleanData.splice(0, 1);
+  var cleanData = inWave.slice( 1, count );  // Remove initial zero so it doesn't appear "twice" when combining waves
 
 	return cleanData;
 }
@@ -121,42 +120,47 @@ function mfsk(freqSet, frameSize) {
 function translate(baseWave, inWave) {
 	// Don't try translating if baseWave is empty
 	if (baseWave.length < 2) {
-		return inWave;
+		return inWave.slice();
 	}
 
-	var translatedWave = [];
+
+	// Find point where inWave should start to match baseWave
+	// TODO: calculate start point using instantaneous phase
 
 	// Translate based on last couple values of baseWave
 	var firstSample = baseWave[baseWave.length - 2];
 	var lastSample = baseWave[baseWave.length - 1];
 
 	var startPoint = 0;
-
 	var goingUp = (firstSample < lastSample ? true : false);
-	if (goingUp && lastSample >= 0) {
-		while (waveBuffer[0][startPoint] <= lastSample) {
+
+	if (goingUp && lastSample >= 0) {  // 0-90 deg
+		while (inWave[startPoint] <= lastSample) {
 			startPoint++;
 		}
-	} else if (goingUp && lastSample < 0) {
+	} else if (goingUp && lastSample < 0) {  // 270-360 deg
 		// start at the end and decrease until less than
-		startPoint = waveBuffer[0].length - 1;
-		while (waveBuffer[0][startPoint] >= lastSample) {
+		startPoint = inWave.length - 1;
+		while (waveBuffer[0][startPoint] > lastSample) {
 			startPoint--;
 		}
-	} else { // going down
-		while (waveBuffer[0][startPoint] <= 0.98) {
+	} else {  // 90-270 deg
+		while (inWave[startPoint] <= 0.99) {
 			startPoint++;
 		}
-		while (waveBuffer[0][startPoint] >= lastSample) {
+		while (inWave[startPoint] >= lastSample) {
 			startPoint++;
 		}
 	}
 
-
-	for (var j = startPoint; j < waveBuffer[0].length; j++) {
-		translatedWave.push(waveBuffer[0][j]);
+	// Splitting at startPoint, rearrange inWave
+	var translatedWave = [];
+	for (var j = startPoint; j < inWave.length; j++) {
+		translatedWave.push(inWave[j]);
 	}
 	for (j = 0; j < startPoint; j++) {
-		translatedWave.push(waveBuffer[0][j]);
+		translatedWave.push(inWave[j]);
 	}
+
+	return translatedWave;
 }
