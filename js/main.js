@@ -67,21 +67,17 @@ function setModType(inModType) {
 // BUFFERS
 var modDataBuffer = [];
 var frameBuffer = [];
-var waveBuffer = [];  // 2d: holds individual waves of different freqs
 
 var bufferResetTimer;
 var bufferResetInterval = 1000;
 
 // Clear old data occasionally to prevent latency woes
-// Only necessary for sq because of its current lack of MFSK
+// ^^ Only necessary for sq because of its current lack of MFSK
 function resetBuffers() {
   modDataBuffer.length = 0;
   frameBuffer.length = 0;
-  waveBuffer.length = 0;
 }
 
-
-// IN MODULATION DATA
 function newDataRcvd(inBuffer) {
   if (!playing) return;
 
@@ -89,22 +85,32 @@ function newDataRcvd(inBuffer) {
   for (var i in inBuffer) {
     modDataBuffer.push(inBuffer[i]);
   }
-
-  bufferWaves();
 }
 
-function bufferWaves() {
-  for (var i = 0; i < modDataBuffer.length; i++) {
-    switch (modType) {
-      case 'freq':
-        waveBuffer.push(makeWave(waveType, (baseTone / modDataBuffer.shift()), sampleRate));
-        break;
+function bufferWaves(modData) {
+  switch (modType) {
+    case 'freq':
+      var freqSet = [];
+      for (var i = 0; i < modDataBuffer.length; i++) {
+        freqSet.push(baseTone / modData[i]);
+      }
 
-      default:
-        while (frameBuffer.length < frameSize) {
-          frameBuffer = frameBuffer.concat(makeWave(waveType, baseTone, sampleRate));
-        }
-    }
+      frameBuffer = frameBuffer.concat(mfsk(freqSet, sampleRate, waveType, frameSize, frameBuffer.slice()));
+      break;
+
+    case 'amp': /* falls through */
+    case 'none': /* falls through */
+    default:
+      while (frameBuffer.length < frameSize) {
+        frameBuffer = frameBuffer.concat(makeWave(waveType, baseTone, sampleRate));
+      }
+      break;
+  }
+}
+
+function fillBuffer(dest, source) {
+  for (var i in dest) {
+    dest[i] = source[i];
   }
 }
 
@@ -131,22 +137,38 @@ function playSound() {
     if (playing) playSound();
   };
 
-  source.start();
+  var modData = modDataBuffer.slice();
+  // Leave at least 1 in modDataBuffer to account for input lag
+  modDataBuffer.splice(0, modDataBuffer.length-1);
+
+  bufferWaves(modData);
+
+  var nextFrame = frameBuffer.slice(0, frameSize);
+
+  // Leave some data in frameBuffer so freq modding can
+  // properly translate during MFSK
+  var frameOffset = (modType === 'freq' ? 2 : 0);
+  frameBuffer.splice(0, frameSize - frameOffset);
+
+  var moddedFrame = [];
 
   // Modulate
   switch (modType) {
-    case 'none':
-      noMod();
-      break;
     case 'amp':
-      modAmp();
+      moddedFrame = modAmp(nextFrame, modData);
       break;
     case 'freq':
-      modFreq();
+      // Already modded in bufferWaves w/ MFSK
+      moddedFrame = nextFrame;
       break;
+    case 'none': /* falls through */
     default:
-      console.log('Unknown modulation type');
+      moddedFrame = noMod(nextFrame);
+      break;
   }
+
+  fillBuffer(sourceBuffer.getChannelData(0), moddedFrame);
+  source.start();
 }
 
 function startSound() {
@@ -168,74 +190,6 @@ function stopSound() {
 
   clearInterval(bufferResetTimer);
   clearInterval(drawTimer);
-}
-
-
-// MODULATION
-function noMod() {
-  var nowBuffering = sourceBuffer.getChannelData(0);
-
-  for (var i in nowBuffering) {
-    nowBuffering[i] = frameBuffer.shift();
-  }
-}
-
-function modAmp() {
-  var nowBuffering = sourceBuffer.getChannelData(0);
-
-  var chunkSize = frameSize/modDataBuffer.length;
-
-  var nextDatum = modDataBuffer[0];
-  for (var i in nowBuffering) {
-    nowBuffering[i] = frameBuffer.shift() * nextDatum;  // Modulate amplitude
-
-    // Leave at least 1 in modDataBuffer to account for input lag
-    if (i%chunkSize < 1 && modDataBuffer.length > 1) {
-      nextDatum = modDataBuffer.shift();
-    }
-  }
-}
-
-function modFreq() {
-  var numChunks = (waveBuffer.length === 0 ? 1 : waveBuffer.length);
-  var chunkSize = parseInt(frameSize / numChunks);
-
-  // Fill the frameBuffer w/ numChunks # of chunks
-  for (var i = 0; i < numChunks && waveBuffer.length > 0; i++) {
-
-    // If frameBuffer has contents translate the new chunk to match the end of the current frameBuffer
-    var translatedWave = translate(frameBuffer, waveBuffer[0]);
-
-
-    var curWaveSize = translatedWave.length;  // How big is this single wave
-    var curChunkCnt = Math.ceil(chunkSize / curWaveSize);  // How many waves to fill a chunk
-
-    var waveChunkBuffer = [];
-    for (var k = 0; k < curChunkCnt; k++) {
-      waveChunkBuffer = waveChunkBuffer.concat(translatedWave);
-    }
-
-    // Let square overshoot its chunk to avoid having to translate w/ no reference to phase
-    if (waveType !== 'square') {
-      waveChunkBuffer = waveChunkBuffer.splice(0, chunkSize);
-    }
-
-    frameBuffer = frameBuffer.concat(waveChunkBuffer);
-
-    // Always keep at least 1 user input to account for input lag
-    if (waveBuffer.length > 1) waveBuffer.shift();
-  }
-
-  //frameBuffer.shift();frameBuffer.shift();
-  var nowBuffering = sourceBuffer.getChannelData(0);
-  for (i in nowBuffering) {
-    // Keep at least 2 in frameBuffer MFSK translation has data to work from
-    var nextSample = frameBuffer[0];
-    if (frameBuffer.length > 2) frameBuffer.shift();
-
-    nowBuffering[i] = nextSample;
-  }
-
 }
 
 
