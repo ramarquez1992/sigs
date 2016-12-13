@@ -10,6 +10,7 @@ $(document).ready(function() {
   // Remember this is called asynchronously
   $.getJSON( '/js/notes.json', function( data ) {
     notes = data;
+    setTone('C');
   });
 
   initSocket();
@@ -24,17 +25,22 @@ function initSocket() {
 function initGUI() {
   $('#stopButton').hide();
 
-  // Associate wave type buttons w/ corresponding funcs
+  // Associate buttons w/ corresponding funcs
   $('#waveTypeSelect').children().each(function() {
     this.onclick = function() {
       setWaveType(this.value);
     };
   });
 
-  // Associate mod type buttons w/ corresponding funcs
   $('#modTypeSelect').children().each(function() {
     this.onclick = function() {
       setModType(this.value);
+    };
+  });
+
+  $('#pitchSelect').find('button').each(function() {
+    this.onclick = function() {
+      baseTone = notes[4][this.value];
     };
   });
 }
@@ -61,6 +67,10 @@ function setWaveType(inWaveType) {
 function setModType(inModType) {
   modType = inModType;
   frameBuffer = [];
+}
+
+function setTone(note) {
+  baseTone = notes[4][note];
 }
 
 
