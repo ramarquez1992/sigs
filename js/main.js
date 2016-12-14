@@ -1,15 +1,21 @@
 // GENERAL INIT
 var socket = io.connect('http://localhost:8080');
+
 var modType = 'amp';
 var waveType = 'sine';
-var defaultTone = 440;  // Hz (concert A)
-var baseTone = defaultTone;
+
 var notes;
+var defaultPitch = 440;
+var defaultNote = 'C';
+var defaultOctave = 4;
+var baseNote = defaultNote;
+var baseOctave = defaultOctave;
 
 $(document).ready(function() {
   // Remember this is called asynchronously
   $.getJSON( '/js/notes.json', function( data ) {
     notes = data;
+    setNote(defaultNote, defaultOctave);
   });
 
   initSocket();
@@ -24,19 +30,52 @@ function initSocket() {
 function initGUI() {
   $('#stopButton').hide();
 
-  // Associate wave type buttons w/ corresponding funcs
+  // Associate buttons w/ corresponding funcs
   $('#waveTypeSelect').children().each(function() {
     this.onclick = function() {
       setWaveType(this.value);
     };
   });
 
-  // Associate mod type buttons w/ corresponding funcs
   $('#modTypeSelect').children().each(function() {
     this.onclick = function() {
       setModType(this.value);
     };
   });
+
+  $('#noteSelect').find('button').each(function() {
+    this.onclick = function() {
+      setNote(this.value, baseOctave);
+    };
+  });
+
+  $('#octaveSelect').find('a').each(function() {
+    this.onclick = function() {
+      var newOctave = baseOctave;
+
+      if (this.classList.contains('prev')) {
+        newOctave = Number(baseOctave) - 1;
+      } else if (this.classList.contains('next')) {
+        newOctave = Number(baseOctave) + 1;
+      } else {
+        newOctave = this.innerHTML;
+      }
+
+      if (newOctave < 0 || newOctave > 8) {
+        newOctave = baseOctave;
+      }
+
+      setNote(baseNote, newOctave);
+    };
+  });
+}
+
+function getPitch() {
+  if (notes) {
+    return notes[baseOctave][baseNote];
+  } else {
+    return defaultPitch;
+  }
 }
 
 function startButtonPressed() {
@@ -54,13 +93,30 @@ function stopButtonPressed() {
 }
 
 function setWaveType(inWaveType) {
+  $('#waveTypeSelect button[value=' + waveType + ']').removeClass('active');
+  $('#waveTypeSelect button[value=' + inWaveType + ']').addClass('active');
+
   waveType = inWaveType;
   frameBuffer = [];
 }
 
 function setModType(inModType) {
+  $('#modTypeSelect button[value=' + modType + ']').removeClass('active');
+  $('#modTypeSelect button[value=' + inModType + ']').addClass('active');
+
   modType = inModType;
   frameBuffer = [];
+}
+
+function setNote(inNote, inOctave) {
+  $('#noteSelect button[value=' + baseNote + ']').removeClass('active');
+  $('#noteSelect button[value=' + inNote + ']').addClass('active');
+
+  $('#octaveSelect').find('.active').first().removeClass('active');
+  $('#octaveSelect').find('.' + inOctave).parent().addClass('active');
+  
+  baseNote = inNote;
+  baseOctave = inOctave;
 }
 
 
@@ -92,7 +148,7 @@ function bufferWaves(modData) {
     case 'freq':
       var freqSet = [];
       for (var i = 0; i < modDataBuffer.length; i++) {
-        freqSet.push(baseTone / modData[i]);
+        freqSet.push(getPitch() / modData[i]);
       }
 
       frameBuffer = frameBuffer.concat(mfsk(freqSet, sampleRate, waveType, frameSize, frameBuffer.slice()));
@@ -102,7 +158,7 @@ function bufferWaves(modData) {
     case 'none': /* falls through */
     default:
       while (frameBuffer.length < frameSize) {
-        frameBuffer = frameBuffer.concat(makeWave(waveType, baseTone, sampleRate));
+        frameBuffer = frameBuffer.concat(makeWave(waveType, getPitch(), sampleRate));
       }
       break;
   }
