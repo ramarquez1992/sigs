@@ -49,7 +49,7 @@ html
       div.col-md-2.col-md-offset-4
         h5 Wave Type 
         div#waveTypeSelect.typeSelect
-          button.btn.btn-xs.btn-info(value='sine') Sine
+          button.active.btn.btn-xs.btn-info(value='sine') Sine
           button.btn.btn-xs.btn-info(value='square') Square
           button.btn.btn-xs.btn-info(value='saw') Sawtooth
           button.btn.btn-xs.btn-info(value='tri') Triangle
@@ -58,14 +58,14 @@ html
         h5 Modulation Type
         div#modTypeSelect.typeSelect
           button.btn.btn-xs.btn-warning(value='none') None
-          button.btn.btn-xs.btn-warning(value='amp') Amplitude
+          button.active.btn.btn-xs.btn-warning(value='amp') Amplitude
           button.btn.btn-xs.btn-warning(value='freq') Frequency
 
       div.col-md-4
         h5 Base Pitch
-        div#pitchSelect
+        div#noteSelect
           div.btn-group-vertical
-            button.btn.btn-xs.btn-success(value='C') C
+            button.active.btn.btn-xs.btn-success(value='C') C
             button.btn.btn-xs.btn-success(value='C#') C#
           div.btn-group-vertical
             button.btn.btn-xs.btn-success(value='D') D
@@ -83,6 +83,20 @@ html
             button.btn.btn-xs.btn-success(value='A#') A#
           div.btn-group-vertical
             button.btn.btn-xs.btn-success.tall(value='B') B
+
+        ul#octaveSelect.pagination.pagination-sm
+          li #[a.prev &laquo;]
+          li #[a.0 0]
+          li #[a.1 1]
+          li #[a.2 2]
+          li #[a.3 3]
+          li.active #[a.4 4]
+          li #[a.5 5]
+          li #[a.6 6]
+          li #[a.7 7]
+          li #[a.8 8]
+          li #[a.next &raquo;]
+
 
 
     footer
