@@ -2,8 +2,7 @@
 
 
 # sigs
-### Arduino signal processing fun
-
+### Arduino sonar theremin and signal processing fun
 
 ## Requirements
 - [Node.js](https://nodejs.org/en/)
